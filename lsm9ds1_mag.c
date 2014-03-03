@@ -251,9 +251,8 @@ static int lsm9ds1_i2c_read(struct lsm9ds1_mag_status *stat, u8 *buf, int len)
 			ret = -1;
 
 		if (ret < 0) {
-			dev_err(&stat->client->dev,
-				"read transfer error: len:%d, command=0x%02x\n",
-				len, cmd);
+			dev_err(&stat->client->dev, "read transfer"
+				" error: len:%d, command=0x%02x\n", len, cmd);
 			return 0;
 		}
 		return len;
@@ -266,7 +265,8 @@ static int lsm9ds1_i2c_read(struct lsm9ds1_mag_status *stat, u8 *buf, int len)
 	return i2c_master_recv(stat->client, buf, len);
 }
 
-static int lsm9ds1_i2c_write(struct lsm9ds1_mag_status *stat, u8 *buf, int len)
+static int lsm9ds1_i2c_write(struct lsm9ds1_mag_status *stat, u8 *buf,
+									int len)
 {
 	int ret;
 	u8 reg, value;
@@ -324,8 +324,8 @@ static int lsm9ds1_hw_init(struct lsm9ds1_mag_status *stat)
 	err = lsm9ds1_i2c_read(stat, buf, 1);
 
 	if (err < 0) {
-		dev_warn(&stat->client->dev, "Error reading WHO_AM_I: is device"
-		" available/working?\n");
+		dev_warn(&stat->client->dev, "Error reading WHO_AM_I: is "
+		" device available/working?\n");
 		goto err_firstread;
 	} else
 		stat->hw_working = 1;
@@ -339,21 +339,21 @@ static int lsm9ds1_hw_init(struct lsm9ds1_mag_status *stat)
 	}
 
 	status_registers.ctrl_reg1_m.resume_value =
-					status_registers.ctrl_reg1_m.default_value;
+				status_registers.ctrl_reg1_m.default_value;
 	status_registers.ctrl_reg2_m.resume_value =
-					status_registers.ctrl_reg2_m.default_value;
+				status_registers.ctrl_reg2_m.default_value;
 	status_registers.ctrl_reg3_m.resume_value =
-					status_registers.ctrl_reg3_m.default_value;
+				status_registers.ctrl_reg3_m.default_value;
 	status_registers.ctrl_reg4_m.resume_value =
-					status_registers.ctrl_reg4_m.default_value;
+				status_registers.ctrl_reg4_m.default_value;
 	status_registers.ctrl_reg5_m.resume_value =
-					status_registers.ctrl_reg5_m.default_value;
+				status_registers.ctrl_reg5_m.default_value;
 	status_registers.int_cfg_m.resume_value =
-					status_registers.int_cfg_m.default_value;
+				status_registers.int_cfg_m.default_value;
 	status_registers.int_ths_h.resume_value =
-					status_registers.int_ths_h.default_value;
+				status_registers.int_ths_h.default_value;
 	status_registers.int_ths_l.resume_value =
-					status_registers.int_ths_l.default_value;
+				status_registers.int_ths_l.default_value;
 
 	stat->xy_mode = X_Y_ULTRA_HIGH_PERFORMANCE;
 	stat->z_mode = Z_ULTRA_HIGH_PERFORMANCE;
@@ -376,7 +376,8 @@ static int lsm9ds1_mag_device_power_off(struct lsm9ds1_mag_status *stat)
 
 	buf[0] = status_registers.ctrl_reg3_m.address;
 	buf[1] = ((CTRL_REG3_M_MD_MASK & CTRL_REG3_M_MD_OFF) |
-		((~CTRL_REG3_M_MD_MASK) & status_registers.ctrl_reg3_m.resume_value));
+		((~CTRL_REG3_M_MD_MASK) & 
+		status_registers.ctrl_reg3_m.resume_value));
 
 	err = lsm9ds1_i2c_write(stat, buf, 1);
 	if (err < 0)
@@ -436,7 +437,7 @@ err_resume_state:
 }
 
 static int lsm9ds1_mag_update_fs_range(struct lsm9ds1_mag_status *stat,
-								u8 new_fs_range)
+							u8 new_fs_range)
 {
 	int err = -1;
 	u32 sensitivity;
@@ -500,7 +501,7 @@ static int lsm9ds1_mag_update_odr(struct lsm9ds1_mag_status *stat,
 	}
 
 	config[1] = ((ODR_MAG_MASK & lsm9ds1_mag_odr_table[i].value) |
-		((~ODR_MAG_MASK) & status_registers.ctrl_reg1_m.resume_value));
+	      ((~ODR_MAG_MASK) & status_registers.ctrl_reg1_m.resume_value));
 
 	if (atomic_read(&stat->enabled_mag)) {
 		config[0] = status_registers.ctrl_reg1_m.address;
@@ -582,7 +583,8 @@ static int lsm9ds1_mag_enable(struct lsm9ds1_mag_status *stat)
 			atomic_set(&stat->enabled_mag, 0);
 			return err;
 		}
-		hrtimer_start(&stat->hr_timer_mag, stat->ktime_mag, HRTIMER_MODE_REL);
+		hrtimer_start(&stat->hr_timer_mag, stat->ktime_mag,
+							HRTIMER_MODE_REL);
 	}
 
 	return 0;
@@ -605,8 +607,9 @@ static void lsm9ds1_mag_input_cleanup(struct lsm9ds1_mag_status *stat)
 	input_free_device(stat->input_dev_mag);
 }
 
-static ssize_t attr_get_polling_rate_mag(struct device *dev, struct device_attribute *attr,
-		char *buf)
+static ssize_t attr_get_polling_rate_mag(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
 {
 	unsigned int val;
 	struct lsm9ds1_mag_status *stat = dev_get_drvdata(dev);
@@ -616,8 +619,9 @@ static ssize_t attr_get_polling_rate_mag(struct device *dev, struct device_attri
 	return sprintf(buf, "%u\n", val);
 }
 
-static ssize_t attr_set_polling_rate_mag(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t size)
+static ssize_t attr_set_polling_rate_mag(struct device *dev,
+					struct device_attribute *attr,
+					const char *buf, size_t size)
 {
 	struct lsm9ds1_mag_status *stat = dev_get_drvdata(dev);
 	unsigned long interval_ms;
@@ -635,16 +639,18 @@ static ssize_t attr_set_polling_rate_mag(struct device *dev, struct device_attri
 	return size;
 }
 
-static ssize_t attr_get_enable_mag(struct device *dev, struct device_attribute *attr,
-		char *buf)
+static ssize_t attr_get_enable_mag(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
 {
 	struct lsm9ds1_mag_status *stat = dev_get_drvdata(dev);
 	int val = (int)atomic_read(&stat->enabled_mag);
 	return sprintf(buf, "%d\n", val);
 }
 
-static ssize_t attr_set_enable_mag(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t size)
+static ssize_t attr_set_enable_mag(struct device *dev,
+					struct device_attribute *attr,
+					const char *buf, size_t size)
 {
 	struct lsm9ds1_mag_status *stat = dev_get_drvdata(dev);
 	unsigned long val;
@@ -660,8 +666,9 @@ static ssize_t attr_set_enable_mag(struct device *dev, struct device_attribute *
 	return size;
 }
 
-static ssize_t attr_get_range_mag(struct device *dev, struct device_attribute *attr,
-		char *buf)
+static ssize_t attr_get_range_mag(struct device *dev,
+					struct device_attribute *attr,
+					char *buf)
 {
 	u8 val;
 	int range = 2;
@@ -688,8 +695,9 @@ static ssize_t attr_get_range_mag(struct device *dev, struct device_attribute *a
 	return sprintf(buf, "%d\n", range);
 }
 
-static ssize_t attr_set_range_mag(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t size)
+static ssize_t attr_set_range_mag(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf, size_t size)
 {
 	struct lsm9ds1_mag_status *stat = dev_get_drvdata(dev);
 	unsigned long val;
@@ -730,8 +738,9 @@ static ssize_t attr_set_range_mag(struct device *dev, struct device_attribute *a
 	return size;
 }
 
-static ssize_t attr_get_xy_mode(struct device *dev, struct device_attribute *attr,
-		char *buf)
+static ssize_t attr_get_xy_mode(struct device *dev,
+				struct device_attribute *attr,
+				char *buf)
 {
 	u8 val;
 	char mode[13];
@@ -757,8 +766,9 @@ static ssize_t attr_get_xy_mode(struct device *dev, struct device_attribute *att
 	return sprintf(buf, "%s\n", mode);
 }
 
-static ssize_t attr_set_xy_mode(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t size)
+static ssize_t attr_set_xy_mode(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf, size_t size)
 {
 	struct lsm9ds1_mag_status *stat = dev_get_drvdata(dev);
 	u8 mode;
@@ -801,8 +811,9 @@ error:
 	return -EINVAL;
 }
 
-static ssize_t attr_get_z_mode(struct device *dev, struct device_attribute *attr,
-		char *buf)
+static ssize_t attr_get_z_mode(struct device *dev, 
+				struct device_attribute *attr,
+				char *buf)
 {
 	u8 val;
 	char mode[13];
@@ -828,8 +839,9 @@ static ssize_t attr_get_z_mode(struct device *dev, struct device_attribute *attr
 	return sprintf(buf, "%s\n", mode);
 }
 
-static ssize_t attr_set_z_mode(struct device *dev, struct device_attribute *attr,
-		const char *buf, size_t size)
+static ssize_t attr_set_z_mode(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf, size_t size)
 {
 	struct lsm9ds1_mag_status *stat = dev_get_drvdata(dev);
 	u8 mode;
@@ -995,7 +1007,8 @@ static int lsm9ds1_mag_get_data(struct lsm9ds1_mag_status *stat, int *xyz)
 	return err;
 }
 
-static void lsm9ds1_mag_report_values(struct lsm9ds1_mag_status *stat, int *xyz)
+static void lsm9ds1_mag_report_values(struct lsm9ds1_mag_status *stat,
+								      int *xyz)
 {
 	input_report_abs(stat->input_dev_mag, ABS_X, xyz[0]);
 	input_report_abs(stat->input_dev_mag, ABS_Y, xyz[1]);
@@ -1063,7 +1076,6 @@ static void poll_function_work_mag(struct work_struct *input_work_mag)
 	stat = container_of((struct work_struct *)input_work_mag,
 			struct lsm9ds1_mag_status, input_work_mag);
 
-	//mutex_lock(&stat->lock);
 	if(atomic_read(&stat->enabled_mag)) {
 		err = lsm9ds1_mag_get_data(stat, xyz);
 		if (err < 0)
@@ -1072,7 +1084,6 @@ static void poll_function_work_mag(struct work_struct *input_work_mag)
 		else
 			lsm9ds1_mag_report_values(stat, xyz);
 	}
-	//mutex_unlock(&stat->lock);
 
 	hrtimer_start(&stat->hr_timer_mag, stat->ktime_mag, HRTIMER_MODE_REL);
 }
@@ -1334,7 +1345,7 @@ static int lsm9ds1_mag_remove(struct i2c_client *client)
 }
 
 static const struct i2c_device_id lsm9ds1_mag_id[]
-					= { { LSM9DS1_MAG_DEV_NAME, 0 }, { }, };
+				= { { LSM9DS1_MAG_DEV_NAME, 0 }, { }, };
 
 MODULE_DEVICE_TABLE(i2c, lsm9ds1_mag_id);
 
@@ -1368,5 +1379,6 @@ module_init(lsm9ds1_init);
 module_exit(lsm9ds1_exit);
 
 MODULE_DESCRIPTION("lsm9ds1 magnetometer driver");
-MODULE_AUTHOR("Giuseppe Barba, Matteo Dameno, Denis Ciocca, STMicroelectronics");
+MODULE_AUTHOR("Giuseppe Barba, Matteo Dameno, Denis Ciocca,"
+							" STMicroelectronics");
 MODULE_LICENSE("GPL");

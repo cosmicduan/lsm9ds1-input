@@ -1,7 +1,7 @@
 
 /******************** (C) COPYRIGHT 2013 STMicroelectronics ********************
 *
-* File Name          : lsm9ds1_mag.h
+* File Name          : lsm9ds1.h
 * Authors	     : AMS - Motion Mems Division - Application Team
 *		     : Giuseppe Barba (giuseppe.barba@st.com)
 *		     : Matteo Dameno (matteo.dameno@st.com)
@@ -35,19 +35,8 @@
 
 
 /************************************************/
-/* 	Output data			 	*/
+/* 	Magnetometer Section  		 	  */
 /*************************************************
-magnetometer: raw
-*************************************************/
-
-/************************************************/
-/* 	sysfs data			 	*/
-/*************************************************
-magnetometer:
-	- pollrate->ms
-	- fullscale->gauss
-*************************************************/
-
 /* Magnetometer Sensor Full Scale */
 #define LSM9DS1_MAG_FS_MASK		(0x60)
 #define LSM9DS1_MAG_FS_4G		(0x00)	/* Full scale 4 Gauss */
