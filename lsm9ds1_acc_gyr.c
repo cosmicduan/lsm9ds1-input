@@ -119,7 +119,7 @@
 #define OUT_TEMP_L			(0x15)
 #define OUT_TEMP_H			(0x16)
 #define STATUS_REG1			(0x17)
-#define	OUT_X_L_G			(0x28) /* 1st AXIS OUT REG of 6 */
+#define	OUT_X_L_G			(0x18) /* 1st AXIS OUT REG of 6 */
 
 #define CTRL_REG4			(0x1E)
 #define CTRL_REG4_DEF			(0x38)
