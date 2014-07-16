@@ -49,10 +49,10 @@
 
 #include <linux/input/lsm9ds1.h>
 
+#define I2C_AUTO_INCREMENT		(0x80)
 #define MS_TO_NS(x)			(x*1000000L)
 #define REFERENCE_G			(0x0B)
 
-/* TODO: check the following values */
 /* Sensitivity */
 #define SENSITIVITY_ACC_2G		(60)	/** ug/LSB */
 #define SENSITIVITY_ACC_4G		(120)	/** ug/LSB */
@@ -492,12 +492,21 @@ static struct status_registers {
 static int lsm9ds1_i2c_write(struct lsm9ds1_acc_gyr_status *stat, u8 *buf, int len)
 {
 	int ret;
-	u8 reg, value;
+	u8 reg = buf[0];
+	u8 value;
 #ifdef DEBUG
 	unsigned int ii;
 #endif
+	struct i2c_msg msg = {
+		.addr = stat->client->addr,
+		.flags = 0,
+		.len = len + 1,
+		.buf = buf,
+	};
 
-	reg = buf[0];
+	if (len > 1)
+		reg |= I2C_AUTO_INCREMENT;
+
 	value = buf[1];
 
 	if (stat->use_smbus) {
@@ -529,19 +538,36 @@ static int lsm9ds1_i2c_write(struct lsm9ds1_acc_gyr_status *stat, u8 *buf, int l
 		}
 	}
 
-	ret = i2c_master_send(stat->client, buf, len + 1);
-	return (ret == len + 1) ? 0 : ret;
+	ret = i2c_transfer(stat->client->adapter, &msg, 1);
+
+	return (ret == 1) ? 0 : 1;
 }
 
 static int lsm9ds1_i2c_read(struct lsm9ds1_acc_gyr_status *stat, u8 *buf,
 								  int len)
 {
 	int ret;
-	u8 reg = buf[0];
-	u8 cmd = reg;
+	u8 cmd = buf[0];
 #ifdef DEBUG
 	unsigned int ii;
 #endif
+	struct i2c_msg msgs[] = {
+		{
+			.addr = stat->client->addr,
+			.flags = 0,
+			.len = 1,
+			.buf = buf,
+		},
+		{
+			.addr = stat->client->addr,
+			.flags = I2C_M_RD,
+			.len = len,
+			.buf = buf,
+		}
+	};
+
+	if (len > 1)
+		cmd |= I2C_AUTO_INCREMENT;
 
 	if (stat->use_smbus) {
 		if (len == 1) {
@@ -579,11 +605,9 @@ static int lsm9ds1_i2c_read(struct lsm9ds1_acc_gyr_status *stat, u8 *buf,
 		return len;
 	}
 
-	ret = i2c_master_send(stat->client, &cmd, sizeof(cmd));
-	if (ret != sizeof(cmd))
-		return ret;
+	ret = i2c_transfer(stat->client->adapter, msgs, 2);
 
-	return i2c_master_recv(stat->client, buf, len);
+	return (ret == 2) ? 0 : 1;
 }
 
 static int lsm9ds1_acc_device_power_off(struct lsm9ds1_acc_gyr_status *stat)

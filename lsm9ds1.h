@@ -35,8 +35,8 @@
 
 
 /************************************************/
-/* 	Magnetometer Section  		 	  */
-/*************************************************
+/* 	Magnetometer Section  		        */
+/************************************************/
 /* Magnetometer Sensor Full Scale */
 #define LSM9DS1_MAG_FS_MASK		(0x60)
 #define LSM9DS1_MAG_FS_4G		(0x00)	/* Full scale 4 Gauss */
@@ -63,9 +63,9 @@
 #define LSM9DS1_M_POLL_INTERVAL_DEF	(100)
 
 
-/**********************************************/
-/* 	Accelerometer section defines	 	*/
-/**********************************************/
+/************************************************/
+/* 	Accelerometer section defines	        */
+/************************************************/
 #define LSM9DS1_ACC_MIN_POLL_PERIOD_MS	1
 
 /* Accelerometer Sensor Full Scale */
@@ -93,9 +93,9 @@
 #define LSM9DS1_ACC_ODR_476		(0xA0)
 #define LSM9DS1_ACC_ODR_952		(0xC0)
 
-/**********************************************/
+/************************************************/
 /* 	Gyroscope section defines	 	*/
-/**********************************************/
+/************************************************/
 #define LSM9DS1_GYR_MIN_POLL_PERIOD_MS	1
 
 #define LSM9DS1_GYR_FS_MASK		(0x18)

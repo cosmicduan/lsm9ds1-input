@@ -49,11 +49,11 @@
 
 #include <linux/input/lsm9ds1.h>
 
-#define	I2C_AUTO_INCREMENT		(0x80)
+#define I2C_AUTO_INCREMENT		(0x80)
 #define MS_TO_NS(x)			(x*1000000L)
 
-#define	MAG_G_MAX_POS			(983520) /** max positive value mag [ugauss] */
-#define	MAG_G_MAX_NEG			(983040) /** max negative value mag [ugauss] */
+#define MAG_G_MAX_POS			(983520) /** max positive value mag [ugauss] */
+#define MAG_G_MAX_NEG			(983040) /** max negative value mag [ugauss] */
 
 #define FUZZ				(0)
 #define FLAT				(0)
@@ -214,15 +214,28 @@ static struct status_registers {
 static int lsm9ds1_i2c_read(struct lsm9ds1_mag_status *stat, u8 *buf, int len)
 {
 	int ret;
-	u8 reg = buf[0];
-	u8 cmd = reg;
+	u8 cmd = buf[0];
 #ifdef DEBUG
 	unsigned int ii;
 #endif
-
+	struct i2c_msg msgs[] = {
+		{
+			.addr = stat->client->addr,
+			.flags = 0,
+			.len = 1,
+			.buf = buf,
+		},
+		{
+			.addr = stat->client->addr,
+			.flags = I2C_M_RD,
+			.len = len,
+			.buf = buf,
+		}
+	};
 
 	if (len > 1)
-		cmd = (I2C_AUTO_INCREMENT | reg);
+		cmd |= I2C_AUTO_INCREMENT;
+
 	if (stat->use_smbus) {
 		if (len == 1) {
 			ret = i2c_smbus_read_byte_data(stat->client, cmd);
@@ -258,11 +271,9 @@ static int lsm9ds1_i2c_read(struct lsm9ds1_mag_status *stat, u8 *buf, int len)
 		return len;
 	}
 
-	ret = i2c_master_send(stat->client, &cmd, sizeof(cmd));
-	if (ret != sizeof(cmd))
-		return ret;
+	ret = i2c_transfer(stat->client->adapter, msgs, 2);
 
-	return i2c_master_recv(stat->client, buf, len);
+	return (ret == 2) ? 0 : 1;
 }
 
 static int lsm9ds1_i2c_write(struct lsm9ds1_mag_status *stat, u8 *buf,
@@ -273,11 +284,14 @@ static int lsm9ds1_i2c_write(struct lsm9ds1_mag_status *stat, u8 *buf,
 #ifdef DEBUG
 	unsigned int ii;
 #endif
+	struct i2c_msg msg = {
+		.addr = stat->client->addr,
+		.flags = 0,
+		.len = len + 1,
+		.buf = buf,
+	};
 
-	if (len > 1)
-		buf[0] = (I2C_AUTO_INCREMENT | buf[0]);
-
-	reg = buf[0];
+	reg = (I2C_AUTO_INCREMENT | buf[0]);
 	value = buf[1];
 
 	if (stat->use_smbus) {
@@ -309,8 +323,9 @@ static int lsm9ds1_i2c_write(struct lsm9ds1_mag_status *stat, u8 *buf,
 		}
 	}
 
-	ret = i2c_master_send(stat->client, buf, len+1);
-	return (ret == len+1) ? 0 : ret;
+	ret = i2c_transfer(stat->client->adapter, &msg, 1);
+
+	return (ret == 1) ? 0 : 1;
 }
 
 static int lsm9ds1_hw_init(struct lsm9ds1_mag_status *stat)
