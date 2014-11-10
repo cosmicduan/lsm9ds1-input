@@ -52,9 +52,6 @@
 #define I2C_AUTO_INCREMENT		(0x80)
 #define MS_TO_NS(x)			(x*1000000L)
 
-#define MAG_G_MAX_POS			(983520) /** max positive value mag [ugauss] */
-#define MAG_G_MAX_NEG			(983040) /** max negative value mag [ugauss] */
-
 #define FUZZ				(0)
 #define FLAT				(0)
 
@@ -76,6 +73,12 @@
 #define SENSITIVITY_MAG_8G		292312 /**	ngauss/LSB	*/
 #define SENSITIVITY_MAG_12G		430000 /**	ngauss/LSB	*/
 #define SENSITIVITY_MAG_16G		584454 /**	ngauss/LSB	*/
+
+#define MAX_I2C_VAL			(0x7FFF)
+
+/** Accelerometer range in ngauss */
+#define MAG_MAX_POS			(MAX_I2C_VAL * SENSITIVITY_MAG_16G)
+#define MAG_MAX_NEG			(-MAX_I2C_VAL * SENSITIVITY_MAG_16G)
 
 /* Magnetic sensor mode */
 #define CTRL_REG3_M_MD_MASK		(0x03)
@@ -1053,12 +1056,12 @@ static int lsm9ds1_mag_input_init(struct lsm9ds1_mag_status *stat)
 
 	set_bit(EV_ABS, stat->input_dev_mag->evbit);
 
-	input_set_abs_params(stat->input_dev_mag, ABS_X,
-				-MAG_G_MAX_NEG, MAG_G_MAX_POS, FUZZ, FLAT);
-	input_set_abs_params(stat->input_dev_mag, ABS_Y,
-				-MAG_G_MAX_NEG, MAG_G_MAX_POS, FUZZ, FLAT);
-	input_set_abs_params(stat->input_dev_mag, ABS_Z,
-				-MAG_G_MAX_NEG, MAG_G_MAX_POS, FUZZ, FLAT);
+	input_set_abs_params(stat->input_dev_mag, ABS_X, MAG_MAX_NEG,
+						MAG_MAX_POS, FUZZ, FLAT);
+	input_set_abs_params(stat->input_dev_mag, ABS_Y, MAG_MAX_NEG,
+						MAG_MAX_POS, FUZZ, FLAT);
+	input_set_abs_params(stat->input_dev_mag, ABS_Z, MAG_MAX_NEG,
+						MAG_MAX_POS, FUZZ, FLAT);
 
 	err = input_register_device(stat->input_dev_mag);
 	if (err) {

@@ -61,11 +61,15 @@
 #define SENSITIVITY_GYR_500		(17500)	/** udps/LSB */
 #define SENSITIVITY_GYR_2000		(70000)	/** udps/LSB */
 
-#define ACC_G_MAX_POS			(1495040)/** max positive value acc [ug] */
-#define ACC_G_MAX_NEG			(1495770)/** max negative value acc [ug] */
-#define MAG_G_MAX_POS			(983520)/** max positive value mag [ugauss] */
-#define MAG_G_MAX_NEG			(983040)/** max negative value mag [ugauss] */
-#define GYR_FS_MAX			(32768)
+#define MAX_I2C_VAL			(0x7FFF)
+
+/** Accelerometer range in ug */
+#define ACC_MAX_POS			(MAX_I2C_VAL * SENSITIVITY_ACC_8G)
+#define ACC_MAX_NEG			(-MAX_I2C_VAL * SENSITIVITY_ACC_8G)
+
+/** Gyroscope range in udps */
+#define GYR_MAX_POS			(MAX_I2C_VAL * SENSITIVITY_GYR_2000)
+#define GYR_MAX_NEG			(-MAX_I2C_VAL * SENSITIVITY_GYR_2000)
 
 #define FUZZ				(0)
 #define FLAT				(0)
@@ -1444,12 +1448,12 @@ static int lsm9ds1_acc_input_init(struct lsm9ds1_acc_gyr_status *stat)
 
 	set_bit(EV_ABS, stat->input_dev_acc->evbit);
 
-	input_set_abs_params(stat->input_dev_acc, ABS_X, -ACC_G_MAX_NEG,
-						ACC_G_MAX_POS, FUZZ, FLAT);
-	input_set_abs_params(stat->input_dev_acc, ABS_Y, -ACC_G_MAX_NEG,
-						ACC_G_MAX_POS, FUZZ, FLAT);
-	input_set_abs_params(stat->input_dev_acc, ABS_Z,-ACC_G_MAX_NEG,
-						ACC_G_MAX_POS, FUZZ, FLAT);
+	input_set_abs_params(stat->input_dev_acc, ABS_X, ACC_MAX_NEG,
+						ACC_MAX_POS, FUZZ, FLAT);
+	input_set_abs_params(stat->input_dev_acc, ABS_Y, ACC_MAX_NEG,
+						ACC_MAX_POS, FUZZ, FLAT);
+	input_set_abs_params(stat->input_dev_acc, ABS_Z,ACC_MAX_NEG,
+						ACC_MAX_POS, FUZZ, FLAT);
 
 	err = input_register_device(stat->input_dev_acc);
 	if (err) {
@@ -1486,12 +1490,12 @@ static int lsm9ds1_gyr_input_init(struct lsm9ds1_acc_gyr_status *stat)
 
 	set_bit(EV_ABS, stat->input_dev_gyr->evbit);
 
-	input_set_abs_params(stat->input_dev_gyr, ABS_X, -GYR_FS_MAX - 1,
-							GYR_FS_MAX, 0, 0);
-	input_set_abs_params(stat->input_dev_gyr, ABS_Y, -GYR_FS_MAX - 1,
-							GYR_FS_MAX, 0, 0);
-	input_set_abs_params(stat->input_dev_gyr, ABS_Z, -GYR_FS_MAX - 1,
-							GYR_FS_MAX, 0, 0);
+	input_set_abs_params(stat->input_dev_gyr, ABS_X, GYR_MAX_NEG,
+							GYR_MAX_POS, 0, 0);
+	input_set_abs_params(stat->input_dev_gyr, ABS_Y, GYR_MAX_NEG,
+							GYR_MAX_POS, 0, 0);
+	input_set_abs_params(stat->input_dev_gyr, ABS_Z, GYR_MAX_NEG,
+							GYR_MAX_POS, 0, 0);
 
 
 	err = input_register_device(stat->input_dev_gyr);
