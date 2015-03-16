@@ -1139,20 +1139,20 @@ static int lsm9ds1_acc_update_odr(struct lsm9ds1_acc_gyr_status *stat,
 			break;
 	}
 
-	if (atomic_read(&stat->enabled_acc)) {
-		buf[0] = status_registers.ctrl_reg6_xl.address;
-		buf[1] = LSM9DS1_ACC_ODR_MASK & lsm9ds1_acc_odr_table[i].value;
+	buf[1] = LSM9DS1_ACC_ODR_MASK & lsm9ds1_acc_odr_table[i].value;
 		buf[1] |= (~LSM9DS1_ACC_ODR_MASK) & 
 				status_registers.ctrl_reg6_xl.resume_val;
+
+	if (atomic_read(&stat->enabled_acc)) {
+		buf[0] = status_registers.ctrl_reg6_xl.address;
 
 		err = lsm9ds1_i2c_write(stat, buf, 1);
 		if (err < 0)
 			goto error;
-
-		status_registers.ctrl_reg6_xl.resume_val = buf[1];
-
-		stat->ktime_acc = ktime_set(0, MS_TO_NS(poll_interval_ms));
 	}
+
+	status_registers.ctrl_reg6_xl.resume_val = buf[1];
+	stat->ktime_acc = ktime_set(0, MS_TO_NS(poll_interval_ms));
 
 	return err;
 
@@ -1171,45 +1171,29 @@ static int lsm9ds1_gyr_update_odr(struct lsm9ds1_acc_gyr_status *stat,
 	u8 val;
 	int i;
 
-	if (atomic_read(&stat->enabled_gyr)) {
-		if (atomic_read(&stat->enabled_acc)) {
-			val = min(poll_interval_ms, 
-					stat->pdata_acc->poll_interval);
-		} else {
-			val = poll_interval_ms;
-		}
+	if (atomic_read(&stat->enabled_acc))
+		val = min(poll_interval_ms, stat->pdata_acc->poll_interval);
+	else
+		val = poll_interval_ms;
 
-		for (i = ARRAY_SIZE(lsm9ds1_gyr_odr_table) - 1; i >= 0; i--) {
-			if ((lsm9ds1_gyr_odr_table[i].cutoff_ms <= val)
-								|| (i == 0))
-				break;
-		}
+	for (i = ARRAY_SIZE(lsm9ds1_gyr_odr_table) - 1; i >= 0; i--)
+		if ((lsm9ds1_gyr_odr_table[i].cutoff_ms <= val) || (i == 0))
+			break;
 
-		/* Set ODR value */
-		buf[0] = status_registers.ctrl_reg1_g.address;
-		buf[1] = LSM9DS1_GYR_ODR_MASK & lsm9ds1_gyr_odr_table[i].value;
+	buf[1] = LSM9DS1_GYR_ODR_MASK & lsm9ds1_gyr_odr_table[i].value;
 		buf[1] |= (~LSM9DS1_GYR_ODR_MASK) &
 					status_registers.ctrl_reg1_g.resume_val;
 
-		err = lsm9ds1_i2c_write(stat, buf, 1);
-		if (err < 0)
-			goto error;
-
-		status_registers.ctrl_reg1_g.resume_val = buf[1];
-
-		/* Enable all axes */
-		buf[0] = status_registers.ctrl_reg4.address;
-		buf[1] = CTRL_REG4_ALL_AXES_EN | 
-				status_registers.ctrl_reg4.resume_val;
+	if (atomic_read(&stat->enabled_gyr)) {
+		/* Set ODR value */
+		buf[0] = status_registers.ctrl_reg1_g.address;
 
 		err = lsm9ds1_i2c_write(stat, buf, 1);
 		if (err < 0)
 			goto error;
-
-		status_registers.ctrl_reg4.resume_val = buf[1];
-
-		stat->ktime_gyr = ktime_set(0, MS_TO_NS(poll_interval_ms));
 	}
+	status_registers.ctrl_reg1_g.resume_val = buf[1];
+	stat->ktime_gyr = ktime_set(0, MS_TO_NS(poll_interval_ms));
 
 	return err;
 

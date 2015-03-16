@@ -526,9 +526,9 @@ static int lsm9ds1_mag_update_odr(struct lsm9ds1_mag_status *stat,
 		err = lsm9ds1_i2c_write(stat, config, 1);
 		if (err < 0)
 			goto error;
-		status_registers.ctrl_reg1_m.resume_value = config[1];
-		stat->ktime_mag = ktime_set(0, MS_TO_NS(poll_interval_ms));
 	}
+	status_registers.ctrl_reg1_m.resume_value = config[1];
+	stat->ktime_mag = ktime_set(0, MS_TO_NS(poll_interval_ms));
 
 	return err;
 
