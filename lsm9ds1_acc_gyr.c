@@ -357,8 +357,8 @@ struct lsm9ds1_acc_gyr_status {
 	int32_t on_before_suspend;
 	int32_t use_smbus;
 
-	uint16_t sensitivity_acc;
-	uint16_t sensitivity_gyr;
+	int32_t sensitivity_acc;
+	int32_t sensitivity_gyr;
 
 	int irq1;
 	struct work_struct irq1_work;
